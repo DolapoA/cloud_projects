@@ -15,10 +15,19 @@ provider "aws" {
   region = "us-east-1" # Sets the AWS region to North Virginia (us-east-1)
 }
 
+data "aws_ami" "ubuntu_latest" {
+  most_recent = true       # retrieves the latest AMI
+  owners      = ["amazon"] # filters AMIs to only include official Amazon owned images
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-*-amd64-server-*"] # Matches the latest Ubuntu Server AMI pattern
+  }
+}
 
 resource "aws_instance" "app_server" {
-  ami           = "ami-064519b8c76274859" # fetches a Debian AMI ID
-  instance_type = "t2.micro"             # Uses t2.micro which is AWS Free Tier eligible
+  ami           = data.aws_ami.ubuntu_latest.id # Dynamically fetches the latest Ubuntu Server AMI ID
+  instance_type = "t2.micro"                    # Uses t2.micro which is AWS Free Tier eligible
 
   root_block_device {
     volume_size = 8     # Ensures the root volume does not exceed AWS Free Tier 30GB limit
