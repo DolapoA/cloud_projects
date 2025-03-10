@@ -78,3 +78,29 @@ To be able to use these outputs to connect this component of infrastructure with
 
 
 ---
+
+
+## Project 5: Store Remote State
+
+### Purpose
+To use HCP Terraform to keep the infrastructure state secure and encrypted in a place that collaborators can access and where Terraform can run remotely.
+
+
+### Activity
+1. Login to terraform
+2. Having logged in, initialise terraform
+3. Migrate the state file
+4. Having migrated the state file to HCP Terraform, delete the local state file
+5. Set workspace variables in HCP Terraform 
+
+
+---
+### Method
+1. `terraform login`
+2. `terraform init`
+3. `terraform init`
+4. `rm terraform.tfstate`
+5. Login to HCP Terraform to do this
+
+
+---
