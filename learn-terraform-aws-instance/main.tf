@@ -35,6 +35,6 @@ resource "aws_instance" "app_server" {
   }
 
   tags = {
-    Name = "ExampleAppServerInstance" # Assigns a name tag for easy identification
+    Name = var.instance_name # Add variable name from variables.tf file
   }
 }
