@@ -25,7 +25,8 @@ Project titles here are virtually identical to their corresponding repository fo
    
 ---
 
-## Project 2: Learn Terraform AWS Instance
+
+## Project 2: Learn Terraform AWS Instance (learn-terraform-aws-instance)
 
 ### Activity
 1. Spin up a Debian EC2 instance
@@ -42,7 +43,8 @@ Project titles here are virtually identical to their corresponding repository fo
 
 ---
 
-## Project 3: Define Input Variables
+
+## Project 3: Define Input Variables (learn-terraform-aws-instance)
 
 ### Activity
 1. Create variables.tf file to define EC2 instance name dynamically
@@ -53,6 +55,26 @@ Project titles here are virtually identical to their corresponding repository fo
 ### Method
 1. `touch variables.tf`
 2. `terraform apply -var "instance_name=YetAnotherName"`
+
+
+---
+
+
+## Project 4: Query data with outputs (learn-terraform-aws-instance)
+
+### Purpose
+To be able to use these outputs to connect this component of infrastructure with other components of infrastructure e.g. Amazon S3.
+
+
+### Activity
+1. Create outputs.tf file to define the output EC2 instance configuration
+2. Query the outputs
+
+
+---
+### Method
+1. `touch outputs.tf`
+2. `terraform output`
 
 
 ---
