@@ -42,3 +42,17 @@ Project titles here are virtually identical to their corresponding repository fo
 
 ---
 
+## Project 3: Define Input Variables
+
+### Activity
+1. Create variables.tf file to define EC2 instance name dynamically
+2. Change instance name whilst provisioning the EC2 instance
+
+
+---
+### Method
+1. `touch variables.tf`
+2. `terraform apply -var "instance_name=YetAnotherName"`
+
+
+---
