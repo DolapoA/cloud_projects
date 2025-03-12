@@ -104,3 +104,35 @@ To use HCP Terraform to keep the infrastructure state secure and encrypted in a 
 
 
 ---
+
+
+## Project 6: Defining Infrastructure with Terraform Resources
+
+![Project Image](learn-terraform-resources/ec2_webapp.drawio_2.png)
+
+
+### Purpose
+Creating an EC2 instance for a (PHP) web app with an AWS security group that enables public accessiblity via the internet.
+
+
+### Activity
+1. Cloned a specific repo
+2. Changed the EC2 instance to Amazon Linux 2023
+3. Created a new init_script_amazon_2023.sh script to work with the new AMI
+4. Created an Amazon Security Group that enables access to the EC2 webserver
+5. Added vpc_security_group_ids to the aws_instance resource
+6. Launched the instance
+
+
+---
+### Method
+1. `git clone https://github.com/hashicorp-education/learn-terraform-resources`
+2. Obtained from Amazon management console -> AMI catalog
+3. Modified the original init_script.sh script accordingly
+4. Added a new resource for security group providing info on ingress and egress including from_port, to_port, protocol and cidr_blocks which enable the public accessibility
+5. A list was added as such `vpc_security_group_ids = [aws_security_group.web-sg.id]`
+6. `terraform login` -> `terraform fmt` -> `terraform validate` -> `terraform init` -> `terraform apply`
+
+
+
+---
