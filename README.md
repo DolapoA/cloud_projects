@@ -3,6 +3,8 @@ A portfolio of cloud projects using Infrastructure as Code (IaC)
 Herein is a terse description of the activity undertaken in each project and the corresponding method of what was done on the CLI.
 Project titles here are virtually identical to their corresponding repository folders.
 
+*Architectural diagram were created using draw.io.*
+
 ## Project 1: Learn Terraform Docker Container
 
 ### Activity
