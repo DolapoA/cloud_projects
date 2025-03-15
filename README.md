@@ -116,23 +116,62 @@ Creating an EC2 instance for a (PHP) web app with an AWS security group that ena
 
 
 ### Activity
-1. Cloned a specific repo
-2. Changed the EC2 instance to Amazon Linux 2023
-3. Created a new init_script_amazon_2023.sh script to work with the new AMI
-4. Created an Amazon Security Group that enables access to the EC2 webserver
-5. Added vpc_security_group_ids to the aws_instance resource
-6. Launched the instance
+1. Changed the EC2 instance to Amazon Linux 2023
+2. Created a new init_script_amazon_2023.sh script to work with the new AMI
+3. Created an Amazon Security Group that enables access to the EC2 webserver
+4. Added vpc_security_group_ids to the aws_instance resource
+5. Launched the instance
 
 
 ---
 ### Method
-1. `git clone https://github.com/hashicorp-education/learn-terraform-resources`
-2. Obtained from Amazon management console -> AMI catalog
-3. Modified the original init_script.sh script accordingly
-4. Added a new resource for security group providing info on ingress and egress including from_port, to_port, protocol and cidr_blocks which enable the public accessibility
-5. A list was added as such `vpc_security_group_ids = [aws_security_group.web-sg.id]`
-6. `terraform login` -> `terraform fmt` -> `terraform validate` -> `terraform init` -> `terraform apply`
+1. Obtained from Amazon management console -> AMI catalog
+2. Modified the original init_script.sh script accordingly
+3. Added a new resource for security group providing info on ingress and egress including from_port, to_port, protocol and cidr_blocks which enable the public accessibility
+4. A list was added as such `vpc_security_group_ids = [aws_security_group.web-sg.id]`
+5. `terraform login` -> `terraform fmt` -> `terraform validate` -> `terraform init` -> `terraform apply`
 
 
+
+---
+
+
+## Project 6: Defining Infrastructure with Terraform Resources
+
+![Project Image](learn-terraform-variables/high_availability_EC2_with ELB_and_NAT.drawio.png)
+
+
+### Purpose
+Deploying a web app using an EC2 and a load balancer to handle traffic. Both private and public subnets will be used to house the EC2 and load balancer respectively. And all components will be kept in a virtual private cloud for logistic isolation and enhanced security.
+
+
+### Activity
+1. Configured filtration for available AZs with a data block
+2. Configured a VPC module with 2 private subnets and 2 public subnets, and NAT gateway toggleable VPN gateway
+3. Configured app security groups
+4. Configured loading balancer security groups
+5. Configured a resource for loading balancer ID
+6. Configured a module for the Elastic Loading Balancer (ELB) with associated LB security group and housed in a public subnet, detailing the instances in the target group, the listener setup of the LB and the health check settings for the instances and tags for the LB.
+7. Configured a module for the EC2 instances detailing the type of instance and the number of them, housing in two private subnets, associated security groups and tags for the EC2s.
+8. Created a terraform variable file and added several variables including, aws_regions, vpc_cidr_block, instance_count, enable_vpn_gateway, public_subnet_count, private_subnet_count, public_subnet_cidr_blocks, private_subnet_cidr_blocks, resource_tags and ec2_instance_type.
+9. Added the variables
+10. Configured settings for Terraform Cloud
+11. Configured and output terraform file
+12. Created .auto.tfvars file to edit the resource tags and modify the number instances
+
+
+---
+### Method
+1. Added code to main.tf
+2. Added code to main.tf
+3. Added code to main.tf
+4. Added code to main.tf
+5. Added code to main.tf
+6. Added code to main.tf
+7. Added code to main.tf
+9. `touch variables.tf` -> Added code for all variables
+10. `touch terraform.tf` -> Added terraform block with details workspace, owner and API provider
+11. `touch output.tf` -> Added code to output public DNS name
+12. `touch terraform.auto.tfvars` -> Added code
 
 ---
