@@ -140,7 +140,7 @@ Creating an EC2 instance for a (PHP) web app with an AWS security group that ena
 
 ## Project 7: Building a highly available EC2 with an ELB
 
-![Project Image](learn-terraform-variables/high_availability_EC2_with%20ELB_and_NAT.drawio.png)
+![Project Image](learn-terraform-variables/high_availability_EC2_with-ELB_and_NAT.drawio.png)
 
 
 ### Purpose
