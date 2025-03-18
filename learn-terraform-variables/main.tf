@@ -77,10 +77,12 @@ module "elb_http" {
   instances           = module.ec2_instances.instance_ids
 
   listener = [{
+    # Within the VPC, data flowing from the ELB to the instance need not be encrypted
     instance_port     = "80"
     instance_protocol = "HTTP"
-    lb_port           = "80"
-    lb_protocol       = "HTTP"
+    # Data flowing from the internet to the ELB needs to be encrypted
+    lb_port     = "443"
+    lb_protocol = "HTTPS"
   }]
 
   # Check instance health by sending HTTP requests
