@@ -181,7 +181,7 @@ Deploying a web app using an EC2 and a load balancer to handle traffic. Both pri
 
 ## Project 8: Building a highly available Web application with an ELB and a database
 
-![Project Image](learn-terraform-variables/high_availability_EC2_with-ELB_and_NAT.drawio.png)
+![Project Image](learn-terraform-sensitive-variables/high_availability_EC2_with_ELB_and_NAT-with_DB.drawio.png)
 
 
 ### Purpose
