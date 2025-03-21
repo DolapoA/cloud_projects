@@ -177,3 +177,38 @@ Deploying a web app using an EC2 and a load balancer to handle traffic. Both pri
 12. `touch terraform.auto.tfvars` -> Added code
 
 ---
+
+
+## Project 8: Building a highly available Web application with an ELB and a database
+
+![Project Image](learn-terraform-sensitive-variables/high_availability_EC2_with_ELB_and_NAT-with_DB.drawio.png)
+
+
+### Purpose
+Deploying a web app using an EC2 and a load balancer to handle traffic. Both private and public subnets will be used to house the EC2 and load balancer respectively. And all components will be kept in a virtual private cloud for logistic isolation and enhanced security.
+
+
+### Activity
+Building on the tasks completed in "learn-terraform-variables"
+1. Define a database resource in main.tf
+2. Declare variables for database username and password and mark them as sensitive
+3. Create a file to be parsed that stores the database username and password
+4. Add an output block for database details in the output.tf file, include the database address, database username and database password
+5. Build infrastructure 
+
+---
+### Method
+1. Added code to main.tf
+2. Added code to variables.tf
+3. `touch secret.tfvars`
+4. Added code to output.tf
+5. `terraform init` -> `terraform apply -var-file=secret.tfvars`
+
+
+### Reflection
+- Updating the `output.tf` file with database information is a way to gather the info required to gain access to the database to update, modify or query the database.
+- The security of this infrastructure could be improved with a number of changes including changing the ELB port to 443 and the protocol to HTTPS, doing this in turn requires a SSL/TLS certificate (which is called an AWS Certificate Manager [ACM] within AWS Cloud Infrastructure), and this in turn requires a domain which I don't have access to so I did not provision this superior security setting.
+- The ingress traffic to the ELB could be limited via the ELB security group. It currently allows all traffic, but if it were an internally used app it could be limited to specific IPs that are trusted such as known internal IPs or a range VPN IPs.
+- At a high layer above the ingress traffic, an AWS WAF could be used to block IPs based on reputation, region/country (e.g. Russia), rate (to prevent DDoS) and the pattern of request (to prevent SQL injections)
+
+---

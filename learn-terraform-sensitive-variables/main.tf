@@ -56,6 +56,29 @@ module "lb_security_group" {
   tags = var.resource_tags
 }
 
+module "db_security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "5.3.0"
+
+  name        = "db-sg"
+  description = "Security group for MySQL database"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_with_source_security_group_id = [
+    {
+      description              = "Allow MySQL from EC2 SG"
+      from_port                = 3306
+      to_port                  = 3306
+      protocol                 = "tcp"
+      source_security_group_id = module.app_security_group.security_group_id
+    }
+  ]
+
+  egress_rules = ["all-all"]
+
+  tags = var.resource_tags
+}
+
 resource "random_string" "lb_id" {
   length  = 3
   special = false
@@ -80,9 +103,9 @@ module "elb_http" {
     # Within the VPC, data flowing from the ELB to the instance need not be encrypted
     instance_port     = "80"
     instance_protocol = "HTTP"
-    # Data flowing from the internet to the ELB needs to be encrypted
-    lb_port     = "443"
-    lb_protocol = "HTTPS"
+
+    lb_port     = "80"
+    lb_protocol = "HTTP"
   }]
 
   # Check instance health by sending HTTP requests
@@ -108,4 +131,20 @@ module "ec2_instances" {
   security_group_ids = [module.app_security_group.security_group_id]
 
   tags = var.resource_tags
+}
+
+resource "aws_db_subnet_group" "private" {
+  subnet_ids = module.vpc.private_subnets
+}
+
+resource "aws_db_instance" "database" {
+  allocated_storage = 5
+  engine            = "mysql"
+  instance_class    = "db.t3.micro"
+  username          = var.db_username
+  password          = var.db_password
+
+  db_subnet_group_name = aws_db_subnet_group.private.name
+
+  skip_final_snapshot = true
 }
