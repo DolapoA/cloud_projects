@@ -1,0 +1,45 @@
+{
+  "drawio": {
+    "diagram": {
+      "name": "Terraform AWS EC2 Architecture",
+      "elements": [
+        {
+          "id": "1",
+          "type": "rectangle",
+          "label": "AWS Cloud",
+          "style": "rounded=1;fillColor=#E3F2FD;",
+          "children": [
+            {
+              "id": "2",
+              "type": "rectangle",
+              "label": "VPC",
+              "style": "rounded=1;fillColor=#BBDEFB;",
+              "children": [
+                {
+                  "id": "3",
+                  "type": "rectangle",
+                  "label": "Security Group",
+                  "style": "rounded=1;fillColor=#90CAF9;"
+                },
+                {
+                  "id": "4",
+                  "type": "rectangle",
+                  "label": "EC2 Instance",
+                  "style": "rounded=1;fillColor=#64B5F6;",
+                  "children": [
+                    {
+                      "id": "5",
+                      "type": "rectangle",
+                      "label": "SSH Key Pair",
+                      "style": "rounded=1;fillColor=#42A5F5;"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
