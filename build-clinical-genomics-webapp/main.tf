@@ -110,13 +110,16 @@ resource "aws_network_acl_rule" "vpn_acl_rule_inbound" {
   rule_action    = "allow"
 }
 
+# Configure network ACLs to allow traffic only from the VPN connection
 resource "aws_network_acl_rule" "vpn_acl_rule_outbound" {
-  network_acl_id = aws_network_acl.cg.id
-  rule_number    = 100
-  egress         = true
-  protocol       = "-1"
-  cidr_block     = "0.0.0.0/0"
-  rule_action         = "allow"
+    network_acl_id = aws_network_acl.cg.id
+    # Assigns a unique number to the rule, among several rules
+    # the rules with lower numbers are followed first
+    rule_number    = 100
+    egress         = true
+    protocol       = "-1"
+    cidr_block     = "0.0.0.0/0"
+    rule_action         = "allow"
 }
 ############################################
 # | | | | | | | | | | | | | | | | | | | |  #
@@ -128,24 +131,29 @@ resource "random_string" "lb_id" {
   special = false
 }
 
+# Routes HTTP traffic from the ALB to the target group within the specified
+# VPC
 resource "aws_lb_target_group" "cg-instance" {
   name     = "cg_instance-target-group"
+  # The type of traffic that the target group will handle
   port     = 80
   protocol = "HTTP"
+  # The VPC this target group belongs to
   vpc_id   = module.vpc.vpc_id
 
   health_check {
     path                = "/"
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 5
-    unhealthy_threshold = 2
-    matcher             = "200"
+    interval            = 30 # The time between health checks
+    timeout             = 5 # The time before a health check times out
+    healthy_threshold   = 5 # The number of consecutive successful health checks
+    unhealthy_threshold = 2 # The number of consecutive failed health checks
+    matcher             = "200" # The HTTP response code that indicates a healthy target
   }
 
   tags = var.resource_tags
 }
 
+# Configure the Application Load Balancer (ALB) to direct traffic to the target group
 module "alb" {
   source  = "terraform-aws-modules/alb/aws"
   version = "9.14.0" # Latest version 22.03.2025
@@ -214,6 +222,82 @@ module "alb" {
   tags = var.resource_tags
 }
 
+module "ec2_instances" {
+  source = "./modules/aws-instance"
+
+  depends_on = [module.vpc]
+  # Number of instances to provision
+  instance_count     = var.instance_count
+  # The type of EC2 instance to provision
+  instance_type      = var.ec2_instance_type
+  # The subnets to which the EC2(s) belong
+  subnet_ids         = module.vpc.private_subnets[*]
+  # The associated security group for the EC2s
+  security_group_ids = [module.app_security_group.security_group_id]
+
+  tags = var.resource_tags
+}
+
+module "asg" {
+  source  = "terraform-aws-modules/autoscaling/aws"
+
+  # Basic ASG settings
+  name                = "internal-webapp-asg"
+  min_size            = 0
+  max_size            = 2
+  desired_capacity    = 1
+  health_check_type   = "EC2"
+  vpc_zone_identifier = module.vpc.private_subnets[*]
+
+  # Launch template essentials
+  launch_template_name        = "internal-webapp-lt"
+  update_default_version      = true
+  image_id                    = "ami-ebd02392"
+  instance_type               = "t3.micro"
+  enable_monitoring           = true
+
+  # IAM role for SSM access
+  create_iam_instance_profile = true
+  iam_role_name               = "internal-webapp-role"
+  iam_role_policies = {
+    AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  }
+
+  # Block device (root volume)
+  block_device_mappings = [
+    {
+      device_name = "/dev/xvda"
+      ebs = {
+        delete_on_termination = true
+        encrypted             = true
+        volume_size           = 20
+        volume_type           = "gp2"
+      }
+    }
+  ]
+
+  # Network interface (main)
+  network_interfaces = [
+    {
+      delete_on_termination = true
+      device_index          = 0
+      security_groups       = ["sg-12345678"]
+    }
+  ]
+
+  # Metadata options (security best practice)
+  metadata_options = {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
+
+  # Tags
+  tags = {
+    Environment = "dev"
+    Project     = "genomics-app"
+  }
+}
 
 # Configure security modules for EC2 instances, 
 # ALB, MySQL DB and the AWS Client VPN 
