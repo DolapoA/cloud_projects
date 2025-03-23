@@ -212,3 +212,28 @@ Building on the tasks completed in "learn-terraform-variables"
 - At a high layer above the ingress traffic, an AWS WAF could be used to block IPs based on reputation, region/country (e.g. Russia), rate (to prevent DDoS) and the pattern of request (to prevent SQL injections)
 
 ---
+
+
+## Project 9: Building highly available Cloud Infrastructure for a Clinical Web App . 
+
+![Project Image]()
+
+
+### Purpose
+The Web App serves Clinical Scientists, Research Scientists, Molecular Diagnostic team with results from diagnostic sequencing. The Web App is hosted on an EC2 and is served data from an S3 Bucket and a MySQL database. An AutoScaling group in combination with AWS Lambda and CloudWatch is used to scale up and scale down resources during the working day and to shut down infrastructure outside of working hours (8am to 6pm) minimum resources can be launched outside of working hours if needed.
+
+#### Note
+Some features may not have been fully tested due to not having access to certain features e.g. like a legitimate domain name.
+
+### Activity
+1. 
+
+---
+### Method
+1. 
+
+
+### Reflection
+- 
+
+---
