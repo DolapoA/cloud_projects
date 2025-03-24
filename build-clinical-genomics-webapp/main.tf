@@ -223,13 +223,13 @@ module "alb" {
 }
 
 module "ec2_instances" {
-  source = "./modules/aws-instance"
+  source = "./modules/instance"
 
   depends_on = [module.vpc]
   # Number of instances to provision
   instance_count     = var.instance_count
   # The type of EC2 instance to provision
-  instance_type      = var.ec2_instance_type
+  instance_type      = var.instance_type
   # The subnets to which the EC2(s) belong
   subnet_ids         = module.vpc.private_subnets[*]
   # The associated security group for the EC2s
@@ -243,17 +243,23 @@ module "asg" {
 
   # Basic ASG settings
   name                = "internal-webapp-asg"
+  # The minimum and maximum number of instances that the ASG maintains
   min_size            = 0
   max_size            = 2
+  # The default number of instances to provision
   desired_capacity    = 1
+  # EC2 instance status checks
   health_check_type   = "EC2"
   vpc_zone_identifier = module.vpc.private_subnets[*]
 
   # Launch template essentials
   launch_template_name        = "internal-webapp-lt"
+  # The launch template will be updated if a new cersion of the template is created
   update_default_version      = true
-  image_id                    = "ami-ebd02392"
-  instance_type               = "t3.micro"
+  # Refers to the module that provisions the EC2 instances
+  image_id                    = module.intance.ami_id
+  # Refers to variable defined in variables.tf and which has been exposed in outputs.tf
+  instance_type               = modules.instance.instance_type
   enable_monitoring           = true
 
   # IAM role for SSM access
