@@ -82,8 +82,9 @@ variable "private_subnet_count" {
 
 # Number of instances to provision
 variable "instance_count" {
-  description = "Number of instances to provision."
-  type        = number
   default     = 2
 }
 
+variable "instance_type" {
+  default     = "t2.micro"
+}

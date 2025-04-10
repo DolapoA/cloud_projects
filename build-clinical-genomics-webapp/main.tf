@@ -50,7 +50,7 @@ resource "aws_vpn_connection" "cg_vpn" { #clinical genomics vpn
   static_routes_only = true
 
   tags = {
-    Name = "example-vpn-connection"
+    Name = "cg-vpn-connection"
   }
 }
 
@@ -72,10 +72,10 @@ resource "aws_security_group" "vpn_sg" {
     # The rule refers to all ports
     from_port   = 0
     to_port     = 0
-    # The rule relates to all protocols
+    # The rule relates to all protocols (TCP, UDP & ICMP)
     protocol    = "-1"
     # The rule allows traffic from the VPN connection
-    cidr_blocks = [aws_vpn_connection.cg_vpn.customer_gateway_configuration]
+    cidr_blocks = ["10.100.0.0/16"]
   }
 
   egress {
@@ -106,7 +106,7 @@ resource "aws_network_acl_rule" "vpn_acl_rule_inbound" {
   rule_number    = 100
   egress         = false
   protocol       = "-1"
-  cidr_block     = aws_vpn_connection.cg_vpn.customer_gateway_configuration
+  cidr_block     = ["10.100.0.0/16"]
   rule_action    = "allow"
 }
 
@@ -124,6 +124,14 @@ resource "aws_network_acl_rule" "vpn_acl_rule_outbound" {
 ############################################
 # | | | | | | | | | | | | | | | | | | | |  #
 ############################################
+
+###############################################
+# Provision resources for the web application #
+###############################################
+
+#----------------------------------------#
+# Resources provisioned - ALB, EC2s, ASG #
+#----------------------------------------#
 
 # Use random string to generate a unique ID for the load balancer
 resource "random_string" "lb_id" {
@@ -164,29 +172,7 @@ module "alb" {
   vpc_id = module.vpc.vpc_id
   # The subnets the ALB is deployed to
   subnets = module.vpc.public_subnets
-    # The security group for the ALB
-    security_group_ingress_rules = {
-    all_http = {
-      from_port   = 80
-      to_port     = 80
-      ip_protocol = "tcp"
-      description = "HTTP web traffic"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-    all_https = {
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      description = "HTTPS web traffic"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-  }
-  security_group_egress_rules = {
-    all = {
-      ip_protocol = "-1"
-      cidr_ipv4   = "10.0.0.0/16"
-    }
-  }
+
    # This stores logs in the named S3 bucket
    access_logs = {
     bucket = "my-alb-logs"
@@ -262,7 +248,9 @@ module "asg" {
   instance_type               = modules.instance.instance_type
   enable_monitoring           = true
 
-  # IAM role for SSM access
+  # IAM role for EC2 instance to obtain AWS Systems Manager (SSM) access
+  # This creates an IAM instance profile that enables the instance to assume the
+  # profile/role and gain the permissions defined herein i.e.internal-webapp-role
   create_iam_instance_profile = true
   iam_role_name               = "internal-webapp-role"
   iam_role_policies = {
@@ -277,24 +265,31 @@ module "asg" {
         delete_on_termination = true
         encrypted             = true
         volume_size           = 20
+        # General purpose SSD
         volume_type           = "gp2"
       }
     }
   ]
 
-  # Network interface (main)
+  # Network interface mappings for the instances to be launched by the auto scaling group (main)
   network_interfaces = [
     {
       delete_on_termination = true
+      # Index value 0 means that this is the primary network interface for the instance
       device_index          = 0
-      security_groups       = ["sg-12345678"]
+      security_groups       = [aws_security_group.asg_sg.id]
     }
   ]
 
   # Metadata options (security best practice)
+  # These settings control how the 
   metadata_options = {
     http_endpoint               = "enabled"
+    # [security measure] Enforced requirement of valid session tokens to access instance metadata to prevent
+    # unauthorized access to metadata - mitigates theft of data in cases where a network has
+    # been misconfigured
     http_tokens                 = "required"
+    # [security measure] Only requests made from the instance itself can request metadata
     http_put_response_hop_limit = 1
   }
 
@@ -305,7 +300,98 @@ module "asg" {
   }
 }
 
+######################################################
+# Provision security groups for respective resources #
+######################################################
+
 # Configure security modules for EC2 instances, 
 # ALB, MySQL DB and the AWS Client VPN 
 
+# Configure security group of ASG to allow traffic only from the ALB
+resource "aws_security_group" "asg_sg" {
+  name        = "asg-security-group"
+  description = "Security group for the Auto Scaling Group"
+  vpc_id      = module.vpc.vpc_id
 
+  ingress {
+    # Allow traffic from the ALB on HTTP (port 80)
+    from_port   = 80
+    to_port     = 80
+    # Transmission Control Protocol offers secure, reliable, accurate communication
+    # in the correct order between devices and applications like web servers, databases
+    # and file transfers
+    protocol    = "tcp"
+    security_groups = [module.alb.security_group_id]
+  }
+
+  ingress {
+    # Allow traffic from the ALB on HTTPS (port 443)
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    security_groups = [module.alb.security_group_id]
+  }
+
+  egress {
+    # This enables instances to access the internet as usual
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "asg-sg"
+  }
+}
+
+# Configure security group for the EC2 instances
+resource "aws_security_group" "ec2_sg" {
+  name = "ec2-security-group"
+  description = "Security group for EC2 instances"
+  vpc_id = module.vpc.vpc_id
+  # Allow traffic from the ALB on HTTP (port 80)
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [module.alb.security_group_id]
+  }
+
+}
+
+# Configure security group for the ALB
+resource "aws_security_group" alb_sg {
+  name = "alb-security-group"
+  description = "Security group for the ALB"
+  vpc_id = module.vpn.vpc_id
+  # Allow traffic from the VPN connection on HTTP (port 80)
+    ingress {
+      from_port   = 80
+      to_port     = 80
+      protocol = "tcp"
+      description = "HTTP web traffic"
+      cidr_blocks   = ["0.100.0.0/16"]
+    }
+
+    ingress {
+      from_port   = 443
+      to_port     = 443
+      protocol = "tcp"
+      description = "HTTPS web traffic"
+      cidr_blocks   = ["0.100.0.0/16"]
+    }
+
+  egress = {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = ["0.100.0.0/16"]
+  }
+
+  tags = {
+    Name = "alb-sg"
+  }
+}
+
+# Configure security group for the MySQL-DB

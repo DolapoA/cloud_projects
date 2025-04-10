@@ -27,5 +27,4 @@ variable "tags" {
 variable "instance_type" {
   description = "Type of EC2 instance to use"
   type        = string
-  default = "t2.micro"
 }
