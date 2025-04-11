@@ -37,8 +37,17 @@ module "vpc" {
 # Enforce access to VPC via VPN exlusively #
 ############################################
 
-# Create a VPN connection
-resource "aws_vpn_connection" "cg_vpn" { #clinical genomics vpn
+# Create a vpn gateway
+resource "aws_vpn_gateway" "cg_vpn" {
+  vpc_id = module.vpc.vpc_id
+
+  tags = {
+    Name = "cg-vpn-gateway"
+  }
+}
+
+# Create a clincial genomics VPN connection
+resource "aws_vpn_connection" "cg_vpn" { 
   customer_gateway_id = aws_customer_gateway.cg_vpn.id
   # Once connected it encrypts data between the user and the VPN gateway
   # This way activity is kept confidential
@@ -57,10 +66,10 @@ resource "aws_vpn_connection" "cg_vpn" { #clinical genomics vpn
 # The route table (router) directs traffic through the VPN gateway
 resource "aws_route" "vpn_route" {
   # Declare the route table to be used  
-  route_table_id         = aws_route_table.private.id
+  route_table_id         = module.vpc.private_route_table_ids[0]
   # Traffic from the internet...
   destination_cidr_block = "0.0.0.0/0"
-  # ...Is directd through the VPN gateway
+  # ...Is directed through the VPN gateway
   gateway_id             = aws_vpn_gateway.cg_vpn.id
 }
 
@@ -75,7 +84,7 @@ resource "aws_security_group" "vpn_sg" {
     # The rule relates to all protocols (TCP, UDP & ICMP)
     protocol    = "-1"
     # The rule allows traffic from the VPN connection
-    cidr_blocks = ["10.100.0.0/16"]
+    cidr_blocks = ["1192.168.100.0/24"]
   }
 
   egress {
@@ -106,7 +115,7 @@ resource "aws_network_acl_rule" "vpn_acl_rule_inbound" {
   rule_number    = 100
   egress         = false
   protocol       = "-1"
-  cidr_block     = ["10.100.0.0/16"]
+  cidr_block     = ["1192.168.100.0/24"]
   rule_action    = "allow"
 }
 
@@ -208,6 +217,7 @@ module "alb" {
   tags = var.resource_tags
 }
 
+# Provision EC2 instances
 module "ec2_instances" {
   source = "./modules/instance"
 
@@ -224,6 +234,7 @@ module "ec2_instances" {
   tags = var.resource_tags
 }
 
+# Provision the Auto Scaling Group (ASG)
 module "asg" {
   source  = "terraform-aws-modules/autoscaling/aws"
 
@@ -300,6 +311,25 @@ module "asg" {
   }
 }
 
+# Provision the MySQL database
+resource "aws_db_subnet_group" "private" {
+  subnet_ids = module.vpc.private_subnets
+}
+
+resource "aws_db_instance" "database" {
+  allocated_storage = 5
+  engine            = "mysql"
+  instance_class    = "db.t3.micro"
+  username          = var.db_username
+  password          = var.db_password
+
+  db_subnet_group_name = aws_db_subnet_group.private.name
+
+  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
+
+  skip_final_snapshot = true
+}
+
 ######################################################
 # Provision security groups for respective resources #
 ######################################################
@@ -371,7 +401,7 @@ resource "aws_security_group" alb_sg {
       to_port     = 80
       protocol = "tcp"
       description = "HTTP web traffic"
-      cidr_blocks   = ["0.100.0.0/16"]
+      cidr_blocks   = ["192.168.100.0/24"]
     }
 
     ingress {
@@ -379,14 +409,14 @@ resource "aws_security_group" alb_sg {
       to_port     = 443
       protocol = "tcp"
       description = "HTTPS web traffic"
-      cidr_blocks   = ["0.100.0.0/16"]
+      cidr_blocks   = ["192.168.100.0/24"]
     }
 
   egress = {
     from_port = 0
     to_port   = 0
     protocol  = "-1"
-    cidr_blocks = ["0.100.0.0/16"]
+    cidr_blocks = ["192.168.100.0/24"]
   }
 
   tags = {
@@ -395,3 +425,28 @@ resource "aws_security_group" alb_sg {
 }
 
 # Configure security group for the MySQL-DB
+resource "aws_security_group" "mysql_sg" {
+  name        = "mysql-security-group"
+  description = "Security group for MySQL database"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    # Allow traffic from the EC2 instances on MySQL port (3306)
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    security_groups = [aws_security_group.ec2_sg.id]
+  }
+
+  egress {
+    # Allow all outbound traffic
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["192.168.100.0/24"]
+  }
+
+  tags = {
+    Name = "mysql-sg"
+  }
+}
