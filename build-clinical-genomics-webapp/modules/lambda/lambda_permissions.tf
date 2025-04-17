@@ -1,3 +1,5 @@
+# Author Dolapo Ajayi
+
 # IAM role for Lambda to manage EC2 instances
 resource "aws_iam_role" "lambda_ec2_control" {
   name = "lambda-ec2-control-role"

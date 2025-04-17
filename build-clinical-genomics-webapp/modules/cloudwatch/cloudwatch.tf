@@ -1,3 +1,5 @@
+# Author Dolapo Ajayi
+
 # CloudWatch rules to stop and start infrastructure based on UK working hours (BST/GMT)
 
 # This resource shuts down the infrastructure at 6 PM BST (5 PM UTC) on weekdays including Saturdays

@@ -1,0 +1,9 @@
+- [x] Modularise instance
+- [x] Modularise VPC
+- [ ] Modularise security groups
+- [ ] Modularise storage
+- [x] Modularise VPN
+- [ ] Modularise Lambda
+- [ ] Modularise CloudWatch
+- [x] Modularise Application Load Balancer
+- [x] Modularise Database

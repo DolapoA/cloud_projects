@@ -1,3 +1,5 @@
+# Author Dolapo Ajayi
+
 resource "aws_lambda_function" "stop_infra" {
   function_name = "stop-infra"
   handler       = "stop.lambda_handler"

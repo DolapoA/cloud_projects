@@ -216,14 +216,25 @@ Building on the tasks completed in "learn-terraform-variables"
 
 ## Project 9: Building highly available Cloud Infrastructure for a Clinical Web App . 
 
-![Project Image]()
+![Project Image](build-clinical-genomics-webapp/project_9-Page-2.drawio.png)
 
 
 ### Purpose
-The Web App serves Clinical Scientists, Research Scientists, Molecular Diagnostic team with results from diagnostic sequencing. The Web App is hosted on an EC2 and is served data from an S3 Bucket and a MySQL database. An AutoScaling group in combination with AWS Lambda and CloudWatch is used to scale up and scale down resources during the working day and to shut down infrastructure outside of working hours (8am to 6pm) minimum resources can be launched outside of working hours if needed.
+The Web App serves Clinical Scientists, Research Scientists, Molecular Diagnostic team with results from diagnostic sequencing. The Web App is hosted on an EC2 and is served data from an S3 Bucket and a MySQL database. An AutoScaling group in combination with AWS Lambda and CloudWatch is used to scale up and scale down resources during the working day and to shut down infrastructure outside of working hours (8am to 6pm).
 
 #### Note
 Some features may not have been fully tested due to not having access to certain features e.g. like a legitimate domain name.
+
+### Modularisation of codebase
+- [x] Modularise instance
+- [x] Modularise VPC
+- [ ] Modularise security groups
+- [ ] Modularise storage
+- [x] Modularise VPN
+- [ ] Modularise Lambda
+- [ ] Modularise CloudWatch
+- [x] Modularise Application Load Balancer
+- [x] Modularise Database
 
 ### Activity
 1. 
