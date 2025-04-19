@@ -13,10 +13,20 @@ module "vpc" {
   public_subnets  = slice(var.public_subnet_cidr_blocks, 0, var.public_subnet_count)  
 
   # Enable NAT gateway for instances to enable security updates
-  enable_nat_gateway = true
+  enable_nat_gateway = false
   
   # Enable VPN gateway into the VPC
   enable_vpn_gateway = true
 
   tags = var.resource_tags
+}
+
+output "vpc_id" {
+  description = "The ID of the VPC"
+  value       = module.vpc.vpc_id
+}
+
+# Filter for AZs that are available
+data "aws_availability_zones" "available" {
+  state = "available"
 }

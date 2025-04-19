@@ -2,9 +2,9 @@
 
 # AWS region suitable for a UK based organisation
 variable "aws_region" {
-    description = "AWS region"
-    type        = string
-    default     = "eu-west-2"
+  description = "AWS region"
+  type        = string
+  default     = "eu-west-2"
 }
 
 # Allocates 65536 IP addresses for the VPC
@@ -13,6 +13,81 @@ variable "vpc_cidr_block" {
   type        = string
   default     = "10.0.0.0/16"
 }
+
+variable "resource_tags" {
+  description = "Tags to set for all resources"
+  type        = map(string)
+  default = {
+    project     = "cg-web-app",
+    environment = "dev"
+  }
+
+  validation {
+    condition     = length(var.resource_tags["project"]) <= 16 && length(regexall("[^a-zA-Z0-9-]", var.resource_tags["project"])) == 0
+    error_message = "The project tag must be no more than 16 characters, and only contain letters, numbers, and hyphens."
+  }
+
+  validation {
+    condition     = length(var.resource_tags["environment"]) <= 8 && length(regexall("[^a-zA-Z0-9-]", var.resource_tags["environment"])) == 0
+    error_message = "The environment tag must be no more than 8 characters, and only contain letters, numbers, and hyphens."
+  }
+}
+
+# Number of public subnets in VPC
+variable "public_subnet_count" {
+  description = "Number of public subnets in VPC"
+  type        = number
+  default     = 2
+}
+
+# Number of private subnets in VPC
+variable "private_subnet_count" {
+  description = "Number of private subnets in VPC"
+  type        = number
+  default     = 2
+}
+
+# Number of instances to provision
+variable "instance_count" {
+  default = 2
+}
+
+variable "instance_type" {
+  default = "t2.micro"
+}
+
+#variable "db_username" {
+#  description = "Database admin username"
+#  type        = string
+#  sensitive   = true
+#}
+
+#variable "db_password" {
+#  description = "Database admin password"
+#  type        = string
+#  sensitive   = true
+#}
+
+#variable "subnets" {
+#  description = "List of subnet IDs"
+#  type        = list(string)
+#}
+
+#variable "security_group_ids" {  ## DELETE ##
+#  description = "List of security group IDs"
+#  type        = list(string)
+#}
+
+
+#variable "alb_arn" {
+#  description = "The ARN of the ALB"
+#  type        = string
+#}
+
+#variable "launch_template_name" {
+#  description = "The name of the launch template"
+#  type        = string
+#}
 
 # public CIDR blocks
 variable "public_subnet_cidr_blocks" {
@@ -44,83 +119,4 @@ variable "private_subnet_cidr_blocks" {
     "10.0.107.0/24",
     "10.0.108.0/24",
   ]
-}
-
-variable "resource_tags" {
-  description = "Tags to set for all resources"
-  type        = map(string)
-  default = {
-    project     = "clinical-genomics-web-app",
-    environment = "dev"
-  }
-
-  validation {
-    condition     = length(var.resource_tags["project"]) <= 16 && length(regexall("[^a-zA-Z0-9-]", var.resource_tags["project"])) == 0
-    error_message = "The project tag must be no more than 16 characters, and only contain letters, numbers, and hyphens."
-  }
-
-  validation {
-    condition     = length(var.resource_tags["environment"]) <= 8 && length(regexall("[^a-zA-Z0-9-]", var.resource_tags["environment"])) == 0
-    error_message = "The environment tag must be no more than 8 characters, and only contain letters, numbers, and hyphens."
-  }
-}
-
-# Number of public subnets in VPC
-variable "public_subnet_count" {
-  description = "Number of public subnets in VPC"
-  type        = number
-  default     = 2
-}
-
-# Number of private subnets in VPC
-variable "private_subnet_count" {
-  description = "Number of private subnets in VPC"
-  type        = number
-  default     = 2
-}
-
-# Number of instances to provision
-variable "instance_count" {
-  default     = 2
-}
-
-variable "instance_type" {
-  default     = "t2.micro"
-}
-
-variable "db_username" {
-  description = "Database admin username"
-  type        = string
-  sensitive   = true
-}
-
-variable "db_password" {
-  description = "Database admin password"
-  type        = string
-  sensitive   = true
-}
-
-variable "vpc_id" {
-  description = "VPC ID"
-  type        = string
-}
-
-variable "subnets" {
-  description = "List of subnet IDs"
-  type        = list(string)
-}
-
-variable "security_group_ids" {
-  description = "List of security group IDs"
-  type        = list(string)
-}
-
-variable "alb_arn" {
-  description = "The ARN of the ALB"
-  type        = string
-}
-
-variable "launch_template_name" {
-  description = "The name of the launch template"
-  type        = string
 }
